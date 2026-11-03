@@ -1,0 +1,149 @@
+{
+  "subjects": [
+    {
+      "id": "sub-web",
+      "slug": "lap-trinh-web-nang-cao",
+      "name": "Lập trình Web nâng cao",
+      "code": "INT1434",
+      "description": "Xây dựng ứng dụng web fullstack với Next.js, xác thực và quản lý dữ liệu."
+    },
+    {
+      "id": "sub-db",
+      "slug": "co-so-du-lieu",
+      "name": "Cơ sở dữ liệu",
+      "code": "INT1313",
+      "description": "Mô hình quan hệ, chuẩn hóa dữ liệu và truy vấn SQL."
+    },
+    {
+      "id": "sub-network",
+      "slug": "mang-may-tinh",
+      "name": "Mạng máy tính",
+      "code": "INT1336",
+      "description": "Kiến trúc TCP/IP, thiết kế mạng và phân tích gói tin."
+    },
+    {
+      "id": "sub-se",
+      "slug": "cong-nghe-phan-mem",
+      "name": "Công nghệ phần mềm",
+      "code": "INT1340",
+      "description": "Phân tích yêu cầu, thiết kế UML và kiểm thử phần mềm."
+    }
+  ],
+  "deadlines": [
+    {
+      "id": "dl-001",
+      "title": "Thực hành 4: App Router và layout",
+      "description": "Tạo route groups, layout dùng chung và trang chi tiết động. Nộp liên kết GitHub kèm ảnh chạy ứng dụng.",
+      "subjectId": "sub-web",
+      "dueAt": "2026-11-08T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-002",
+      "title": "Thực hành 5: Server Actions",
+      "description": "Xây dựng biểu mẫu thêm deadline, kiểm tra dữ liệu đầu vào và hiển thị lỗi bằng tiếng Việt.",
+      "subjectId": "sub-web",
+      "dueAt": "2026-11-15T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-003",
+      "title": "Báo cáo dự án Class Deadline Hub",
+      "description": "Hoàn thiện báo cáo kiến trúc, hướng dẫn cài đặt và video demo luồng người dùng, quản trị viên.",
+      "subjectId": "sub-web",
+      "dueAt": "2026-11-29T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-004",
+      "title": "Bài tập mô hình ER quản lý thư viện",
+      "description": "Vẽ thực thể sách, độc giả, phiếu mượn; xác định khóa và lực lượng liên kết. Nộp PDF.",
+      "subjectId": "sub-db",
+      "dueAt": "2026-11-09T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-005",
+      "title": "Thực hành truy vấn SQL",
+      "description": "Viết 15 truy vấn JOIN, GROUP BY và truy vấn lồng trên bộ dữ liệu quản lý sinh viên. Nộp file SQL.",
+      "subjectId": "sub-db",
+      "dueAt": "2026-11-16T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-006",
+      "title": "Bài tập chuẩn hóa lược đồ",
+      "description": "Tìm khóa ứng viên, phụ thuộc hàm và phân rã lược đồ đạt chuẩn 3NF; giải thích từng bước.",
+      "subjectId": "sub-db",
+      "dueAt": "2026-11-23T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-007",
+      "title": "Thực hành chia địa chỉ IPv4",
+      "description": "Chia mạng 192.168.10.0/24 cho bốn phòng máy bằng VLSM. Lập bảng network, broadcast và dải host.",
+      "subjectId": "sub-network",
+      "dueAt": "2026-11-10T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-008",
+      "title": "Phân tích gói tin bằng Wireshark",
+      "description": "Ghi lại quá trình DNS và bắt tay TCP; chú thích các gói tin quan trọng trong báo cáo PDF.",
+      "subjectId": "sub-network",
+      "dueAt": "2026-11-17T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-009",
+      "title": "Thiết kế mạng văn phòng",
+      "description": "Dựng mô hình Packet Tracer gồm VLAN, định tuyến liên VLAN và DHCP. Nộp file pkt và kết quả ping.",
+      "subjectId": "sub-network",
+      "dueAt": "2026-11-24T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-010",
+      "title": "Đặc tả yêu cầu phần mềm",
+      "description": "Viết tài liệu SRS cho hệ thống quản lý deadline: tác nhân, yêu cầu chức năng và phi chức năng.",
+      "subjectId": "sub-se",
+      "dueAt": "2026-11-11T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-011",
+      "title": "Thiết kế biểu đồ UML",
+      "description": "Vẽ use case, biểu đồ lớp và sequence cho luồng đánh dấu hoàn thành deadline. Nộp PDF và file nguồn.",
+      "subjectId": "sub-se",
+      "dueAt": "2026-11-18T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "dl-012",
+      "title": "Lập kế hoạch kiểm thử",
+      "description": "Thiết kế ít nhất 20 test case cho đăng nhập, phân quyền và quản lý deadline, có kết quả mong đợi.",
+      "subjectId": "sub-se",
+      "dueAt": "2026-11-25T23:59:00+07:00",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin",
+      "name": "Quản trị viên",
+      "email": "admin@ptit.edu.vn",
+      "passwordHash": "$2b$12$y2eI7eyBSrNf80qDCBjcru.ZmSIdDyQtMME3DnJ1CXnqZsR4jhEqS",
+      "role": "admin",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    },
+    {
+      "id": "user-student",
+      "name": "Sinh viên PTIT",
+      "email": "sv@ptit.edu.vn",
+      "passwordHash": "$2b$12$acDTufSMgCif4AUjKEw6det5w0uSfRBxehh7d7lAm3I9VLo2.DM0K",
+      "role": "user",
+      "createdAt": "2026-11-01T08:00:00+07:00"
+    }
+  ],
+  "completions": []
+}
