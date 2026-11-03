@@ -2,6 +2,7 @@ import "server-only";
 import path from "node:path";
 import { readDatabase, updateDatabase } from "./json-store.mjs";
 import type { Database } from "@/types";
+import { mergeGitHubUser } from "@/lib/github-user";
 
 // Resolve from the Next.js project root, including bundled production code.
 const file = path.join(process.cwd(), "data", "db.json");
@@ -24,7 +25,7 @@ export async function getUserById(id: string) {
   return (await read()).users.find((user) => user.id === id);
 }
 export async function getUserByEmail(email: string) {
-  return (await read()).users.find((user) => user.email.toLowerCase() === email.trim().toLowerCase());
+  return (await read()).users.find((user) => user.passwordHash !== null && user.email?.toLowerCase() === email.trim().toLowerCase());
 }
 export async function getCompletionsByUserId(userId: string) {
   return (await read()).completions.filter((completion) => completion.userId === userId);
@@ -36,6 +37,11 @@ export async function updateRepository(update: (db: Database) => Database | Prom
     return update(db);
   }, file) as Promise<Database>;
 }
+export async function saveGitHubUser(identity: Parameters<typeof mergeGitHubUser>[1]) {
+  const db = await updateRepository((db) => { mergeGitHubUser(db, identity); return db; });
+  return db.users.find((user) => user.id === `github:${identity.accountId}`)!;
+}
+
 export async function setCompletion(userId: string, deadlineId: string, completed: boolean) {
   await updateRepository((db) => {
     if (!db.users.some((u) => u.id === userId) || !db.deadlines.some((d) => d.id === deadlineId)) {

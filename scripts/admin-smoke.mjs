@@ -45,11 +45,22 @@ async function login(email, pw) {
   return j;
 }
 
-const testId = `dl-admin-test-${Date.now()}`;
+const { encodeReply } = await import("next/dist/compiled/react-server-dom-webpack/client.node.js");
+const manifest = JSON.parse(await readFile(".next/server/server-reference-manifest.json", "utf8"));
+async function action(jar, name, fields) {
+  const id = Object.entries(manifest.node).find(([, value]) => value.exportedName === name)?.[0];
+  assert.ok(id, `Missing action ${name}`);
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.set(key, value);
+  const body = await encodeReply([{ error: "", fieldErrors: {}, message: "" }, form]);
+  const response = await fetch(base + "/admin", { method: "POST", redirect: "manual", headers: { Cookie: jar.cookie(), Origin: base, "Next-Action": id }, body });
+  assert.equal(response.status, 200);
+  return response.text();
+}
+let testId = `dl-admin-test-${Date.now()}`;
 const testTitle = "Smoke Test Deadline";
 const testDesc = "Created by admin-smoke test script";
-const testDue = "2027-12-31T23:59:00+07:00";
-const testCreated = new Date().toISOString().replace("Z", "+07:00").replace(/\.\d{3}/, "");
+const fields = { title: testTitle, description: testDesc, subjectId: "sub-web", dueAt: "2027-12-31T23:59" };
 
 try {
   for (let i = 0; i < 60; i++) {
@@ -84,12 +95,32 @@ try {
   }
   assert.match(adminR.headers.get("cache-control"), /private|no-store|no-cache/);
   console.log("PASS admin page renders with stats, form, list, private cache");
+  const dashboard = await fetch(base + "/dashboard", { headers: { Cookie: userJ.cookie() } });
+  assert.match(await dashboard.text(), /name="robots" content="noindex, nofollow"/);
+  assert.match(adminHtml, /name="robots" content="noindex, nofollow"/);
+  console.log("PASS authenticated dashboard and admin noindex");
+  await fetch(base + "/sitemap.xml");
 
-  // Add deadline via DB (simulates Server Action write)
-  await updateDatabase((c) => {
-    c.deadlines.push({ id: testId, title: testTitle, description: testDesc, subjectId: "sub-web", dueAt: testDue, createdAt: testCreated });
-    return c;
-  });
+  for (const name of ["addDeadline", "deleteDeadline"]) {
+    const denied = await action(userJ, name, { ...fields, deadlineId: db.deadlines[0].id, role: "admin" });
+    assert.ok(denied.includes("Bạn không có quyền"));
+    assert.deepEqual(await readDatabase(), db);
+  }
+  console.log("PASS user cannot invoke either action even with forged admin role");
+  for (const invalid of [{ title: " " }, { description: "" }, { subjectId: "missing" }, { dueAt: "2027-02-30T12:00" }]) {
+    const result = await action(adminJ, "addDeadline", { ...fields, ...invalid });
+    assert.ok(result.includes("không hợp lệ") || result.includes("không tồn tại"));
+    assert.deepEqual(await readDatabase(), db);
+  }
+  await fetch(base + "/deadlines"); // Warm cache before mutation.
+  const added = await action(adminJ, "addDeadline", fields);
+  assert.ok(added.includes("Đã thêm deadline"));
+  const created = (await readDatabase()).deadlines.find((d) => d.title === testTitle);
+  assert.ok(created);
+  testId = created.id;
+  assert.ok((await (await fetch(base + "/sitemap.xml")).text()).includes(`/deadlines/${testId}</loc>`));
+  assert.ok((await (await fetch(base + "/deadlines")).text()).includes(testTitle));
+  console.log("PASS real add action and list revalidation");
   assert.ok((await readDatabase()).deadlines.some((d) => d.id === testId));
   console.log("PASS deadline added to JSON");
 
@@ -104,12 +135,8 @@ try {
   assert.ok((await det.text()).includes(testTitle));
   console.log("PASS detail page /deadlines/" + testId + " accessible");
 
-  // Delete deadline via DB (simulates Server Action write)
-  await updateDatabase((c) => {
-    c.deadlines = c.deadlines.filter((d) => d.id !== testId);
-    c.completions = c.completions.filter((x) => x.deadlineId !== testId);
-    return c;
-  });
+  const deleted = await action(adminJ, "deleteDeadline", { deadlineId: testId });
+  assert.ok(deleted.includes("Đã xóa deadline"));
   assert.ok(!(await readDatabase()).deadlines.some((d) => d.id === testId));
   console.log("PASS deadline removed from JSON");
 
@@ -118,11 +145,11 @@ try {
   assert.ok(!(await a3.text()).includes(testId));
   console.log("PASS admin page no longer shows deleted deadline");
 
-  // Detail may still serve ISR-cached page until revalidation period expires.
-  // In production, deleteDeadline Server Action calls revalidateDeadlines(id).
-  // Here we only verify the DB state and admin SSR reflect the deletion.
-  // A real 404 would appear after ISR s-maxage (60s) expires; we skip the wait.
-  console.log("PASS (skipped ISR 404 wait — Server Action would revalidate)");
+  assert.equal((await fetch(base + `/deadlines/${testId}`)).status, 404);
+  assert.ok(!(await (await fetch(base + "/sitemap.xml")).text()).includes(`/deadlines/${testId}</loc>`));
+  console.log("PASS sitemap revalidated after add/delete");
+  assert.ok(!(await (await fetch(base + "/deadlines")).text()).includes(testTitle));
+  console.log("PASS deleted detail returns HTTP 404 and list cache updated");
 
 } finally {
   server.kill();

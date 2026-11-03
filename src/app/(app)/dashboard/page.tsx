@@ -29,7 +29,7 @@ export default async function DashboardPage() {
             <h3 className="text-lg font-bold"><Link href={`/deadlines/${deadline.id}`} className="hover:text-indigo-700">{deadline.title}</Link></h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">{deadline.description}</p>
             <p className="my-3 text-sm text-slate-500">Hạn nộp: <time dateTime={deadline.dueAt}>{new Date(deadline.dueAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</time></p>
-            <DeadlineCountdown dueAt={deadline.dueAt} initialNow={now} />
+            {!completed && <DeadlineCountdown dueAt={deadline.dueAt} initialNow={now} />}
             <CompletionForm deadlineId={deadline.id} completed={completed} />
           </li>;
         })}</ul>

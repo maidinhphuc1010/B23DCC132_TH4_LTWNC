@@ -10,7 +10,7 @@ export default function AddDeadlineForm({ subjects }: { subjects: Subject[] }) {
   const [state, action, pending] = useActionState(addDeadline, initial);
 
   return (
-    <form action={action} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form action={action} aria-busy={pending} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-xl font-bold">Thêm deadline mới</h2>
 
       <div>

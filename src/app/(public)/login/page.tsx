@@ -1,3 +1,5 @@
+import { privateMetadata } from "@/lib/seo";
+export const metadata = privateMetadata;
 import { Suspense } from "react";
 import LoginForm from "@/components/login-form";
 

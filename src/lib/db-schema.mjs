@@ -11,11 +11,18 @@ export const deadlineSchema = z.object({
   id, title: z.string().min(1), description: z.string().min(1),
   subjectId: id, dueAt: date, createdAt: date,
 }).strict();
-export const userSchema = z.object({
-  id, name: z.string().min(1), email: z.email(),
-  passwordHash: z.string().regex(/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/),
-  role: roleSchema, createdAt: date,
-}).strict();
+const passwordHash = z.string().regex(/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/);
+export const userSchema = z.union([
+  z.object({
+    id, name: z.string().min(1), email: z.email(), passwordHash,
+    role: roleSchema, createdAt: date,
+  }).strict(),
+  z.object({
+    id: z.string().regex(/^github:[1-9]\d*$/), provider: z.literal("github"),
+    name: z.string().min(1), email: z.email().nullable(), passwordHash: z.null(),
+    role: z.literal("user"), createdAt: date,
+  }).strict(),
+]);
 export const completionSchema = z.object({ userId: id, deadlineId: id, completedAt: date }).strict();
 export const databaseSchema = z.object({
   subjects: z.array(subjectSchema), deadlines: z.array(deadlineSchema),
@@ -29,7 +36,7 @@ export const databaseSchema = z.object({
     unique(db[table].map((item) => item.id), `${table}.id`);
   }
   unique(db.subjects.map((s) => s.slug), "subject.slug");
-  unique(db.users.map((u) => u.email.toLowerCase()), "user.email");
+  unique(db.users.filter((u) => u.passwordHash !== null).map((u) => u.email.toLowerCase()), "user.email");
   unique(db.completions.map((c) => JSON.stringify([c.userId, c.deadlineId])), "completion");
   for (const d of db.deadlines) {
     if (!db.subjects.some((s) => s.id === d.subjectId)) error("Môn học không tồn tại");

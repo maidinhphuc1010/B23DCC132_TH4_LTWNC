@@ -1,3 +1,5 @@
+import { publicMetadata } from "@/lib/seo";
+export const metadata = publicMetadata("Danh sách deadline", "Tra cứu deadline của lớp, lọc theo môn học và lên kế hoạch nộp bài đúng hạn.", "/deadlines");
 import DeadlineBrowser from "@/components/deadline-browser";
 import { getDeadlines, getSubjects } from "@/lib/repository";
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, BookOpen, CalendarCheck2 } from "lucide-react";
 import SubjectCard from "@/components/subject-card";
 import DeadlineList from "@/components/deadline-list";
@@ -12,6 +13,7 @@ export default async function HomeContent() {
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-32 h-96 w-96 rounded-full bg-indigo-600/30 blur-3xl" />
       <div className="relative grid items-center gap-10 lg:grid-cols-[1.5fr_1fr]">
         <div>
+          <Image src="/study-planner.svg" alt="Lịch học tập với các mốc hạn nộp và dấu hoàn thành" width={480} height={240} className="mb-6 h-auto w-60" />
           <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Không bỏ lỡ một hạn nộp nào</p>
           <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Học có kế hoạch.<br /><span className="text-indigo-300">Nộp bài đúng hẹn.</span></h1>
           <p className="mt-6 max-w-xl text-base leading-8 text-slate-300">Class Deadline Hub tập hợp môn học và hạn nộp bài của lớp trong một nơi. Dễ dàng tìm bài cần làm, sắp xếp thời gian và chủ động hơn mỗi ngày.</p>

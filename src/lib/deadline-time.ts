@@ -6,7 +6,13 @@ export function deadlineTiming(dueAt: string, now: number) {
   const due = Date.parse(dueAt);
   const days = vietnamDay(due) - vietnamDay(now);
   const status: DeadlineStatus = now >= due ? "overdue" : days <= 2 ? "soon" : "open";
-  const countdown = days === 0 ? "Hết hạn hôm nay" : days > 0 ? `Còn ${days} ngày` : `Quá hạn ${-days} ngày`;
+  const remaining = Math.max(0, Math.ceil((due - now) / 1000));
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+  const seconds = remaining % 60;
+  const countdown = status === "overdue"
+    ? (days === 0 ? "Đã hết hạn hôm nay" : `Quá hạn ${-days} ngày`)
+    : days === 0 ? `Còn ${hours} giờ ${minutes} phút ${seconds} giây` : `Còn ${days} ngày`;
   return { status, countdown };
 }
 export const statusLabels: Record<DeadlineStatus, string> = {

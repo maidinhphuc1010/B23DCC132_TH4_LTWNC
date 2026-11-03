@@ -1,15 +1,15 @@
-import Link from "next/link";
-import { Suspense } from "react";
+import PublicHeader from "@/components/public-header";
+import DashboardNav from "@/components/dashboard-nav";
 
 export default function PageShell({ children, area }: { children: React.ReactNode; area: string }) {
-  return <div className="mx-auto w-full max-w-5xl p-6">
-    <header className="mb-8 space-y-3 border-b pb-4">
-      <p className="font-bold">Class Deadline Hub · {area}</p>
-      <nav className="flex flex-wrap gap-4" aria-label="Điều hướng chính">
-        <Link href="/">Môn học</Link><Link href="/deadlines">Deadline</Link>
-        <Link href="/login">Đăng nhập</Link><Link href="/dashboard">Dashboard</Link><Link href="/admin">Quản trị</Link>
-      </nav>
-    </header>
-    <main><Suspense fallback={<p>Đang tải dữ liệu…</p>}>{children}</Suspense></main>
+  return <div className="min-h-screen bg-slate-50 text-slate-900">
+    <PublicHeader />
+    <div className="mx-auto grid max-w-7xl lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside className="border-b border-slate-200 bg-white p-5 lg:border-b-0 lg:border-r">
+        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-600">{area}</p>
+        <DashboardNav admin />
+      </aside>
+      <main id="main-content" tabIndex={-1} className="min-w-0 p-5 sm:p-8">{children}</main>
+    </div>
   </div>;
 }

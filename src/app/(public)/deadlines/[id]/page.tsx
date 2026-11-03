@@ -1,7 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DeadlineCountdown from "@/components/deadline-countdown";
-import { getDeadlineById, getDeadlines, getSubjects } from "@/lib/repository";
+import { getDeadlines, getSubjects } from "@/lib/repository";
+import { getDeadlineDetail } from "@/lib/deadline-detail";
+import { absoluteUrl, publicMetadata, safeJsonLd } from "@/lib/seo";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const deadline = await getDeadlineDetail((await params).id);
+  if (!deadline) notFound();
+  const path = `/deadlines/${encodeURIComponent(deadline.id)}`;
+  const metadata = publicMetadata(deadline.title, deadline.description.slice(0, 160), path);
+  // File-based OG metadata supplies the versioned image URL. Twitter falls back to it.
+  return { ...metadata, twitter: { ...metadata.twitter, card: "summary_large_image" as const } };
+}
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -14,12 +25,21 @@ export async function generateStaticParams() {
 
 export default async function DeadlinePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const deadline = await getDeadlineById(id) ?? (id === "1" ? await getDeadlineById("dl-001") : undefined);
+  const deadline = await getDeadlineDetail(id);
   // Compatibility URL requested by the assignment; keep existing IDs and links intact.
 
   if (!deadline) notFound();
   const subject = (await getSubjects()).find((s) => s.id === deadline.subjectId);
+  const breadcrumbs = {
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    itemListElement: [
+      { name: "Trang chủ", item: absoluteUrl("/") },
+      { name: "Deadline", item: absoluteUrl("/deadlines") },
+      { name: deadline.title, item: absoluteUrl(`/deadlines/${encodeURIComponent(deadline.id)}`) },
+    ].map((item, index) => ({ "@type": "ListItem", position: index + 1, ...item })),
+  };
   return <article className="mx-auto max-w-3xl space-y-6">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbs) }} />
     <Link href="/deadlines" className="text-sm font-semibold text-indigo-700 hover:underline">← Tất cả deadline</Link>
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
       <DeadlineCountdown dueAt={deadline.dueAt} initialNow={new Date().getTime()} />

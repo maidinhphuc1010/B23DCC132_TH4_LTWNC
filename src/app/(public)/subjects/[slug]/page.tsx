@@ -5,6 +5,15 @@ import DeadlineList from "@/components/deadline-list";
 import { getSubjects } from "@/lib/repository";
 import { getPublicData } from "@/lib/public-data";
 
+import { publicMetadata } from "@/lib/seo";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const subject = (await getSubjects()).find((item) => item.slug === slug);
+  if (!subject) notFound();
+  return publicMetadata(subject.name, subject.description, `/subjects/${encodeURIComponent(subject.slug)}`);
+}
+
 export const dynamicParams = false;
 
 export async function generateStaticParams() {

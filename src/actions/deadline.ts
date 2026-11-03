@@ -1,8 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { requirePermission } from "@/lib/require-auth";
-import { getSubjects, updateRepository } from "@/lib/repository";
+import { randomUUID } from "node:crypto";
+import { auth } from "@/auth";
+import { can, type Action } from "@/lib/permissions";
+import { getUserById, updateRepository } from "@/lib/repository";
 import { revalidateDeadlines } from "@/lib/revalidate-deadlines";
 import { revalidatePath } from "next/cache";
 
@@ -11,7 +13,7 @@ const addSchema = z.object({
   title: z.string().trim().min(1, "Tiêu đề không được để trống.").max(500, "Tiêu đề quá dài."),
   description: z.string().trim().min(1, "Mô tả không được để trống.").max(2000, "Mô tả quá dài."),
   subjectId: z.string().trim().min(1, "Vui lòng chọn môn học."),
-  dueAt: z.string().trim().min(1, "Vui lòng nhập ngày giờ hạn nộp."),
+  dueAt: z.iso.datetime({ local: true, precision: -1, error: "Ngày giờ hạn nộp không hợp lệ." }),
 });
 
 const deleteSchema = z.object({
@@ -21,6 +23,19 @@ const deleteSchema = z.object({
 export type DeadlineActionState = { error: string; fieldErrors: Record<string, string[]>; message: string };
 const blank: DeadlineActionState = { error: "", fieldErrors: {}, message: "" };
 
+async function authorize(action: Action): Promise<string> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return "Vui lòng đăng nhập để thực hiện thao tác này.";
+    const user = await getUserById(session.user.id);
+    if (!user || !can(user.role, action)) return "Bạn không có quyền thực hiện thao tác này. Chỉ admin được thêm/xóa deadline.";
+    return "";
+  } catch (error) {
+    console.error("Deadline authorization failed", error);
+    return "Không thể đọc dữ liệu xác thực. Vui lòng thử lại.";
+  }
+}
+
 function revalidateAll(id: string) {
   revalidateDeadlines(id);
   revalidatePath("/admin");
@@ -29,7 +44,9 @@ function revalidateAll(id: string) {
 
 // ── Add Deadline ─────────────────────────────────────────────────────
 export async function addDeadline(_prev: DeadlineActionState, form: FormData): Promise<DeadlineActionState> {
-  await requirePermission("deadline:create", "/admin");
+  const error = await authorize("deadline:create");
+  if (error) return { ...blank, error };
+  if (!(form instanceof FormData)) return { ...blank, error: "Dữ liệu biểu mẫu không hợp lệ." };
 
   const parsed = addSchema.safeParse({
     title: form.get("title"),
@@ -41,30 +58,15 @@ export async function addDeadline(_prev: DeadlineActionState, form: FormData): P
     return { ...blank, error: "Dữ liệu không hợp lệ.", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  // Validate subjectId exists
-  const subjects = await getSubjects();
-  if (!subjects.some((s) => s.id === parsed.data.subjectId)) {
-    return { ...blank, error: "Môn học không tồn tại.", fieldErrors: { subjectId: ["Môn học không tồn tại trong hệ thống."] } };
-  }
-
-  // Parse dueAt: input type="datetime-local" gives "YYYY-MM-DDTHH:mm", convert to +07:00
-  const dueDate = new Date(`${parsed.data.dueAt}:00+07:00`);
-  if (isNaN(dueDate.getTime())) {
-    return { ...blank, error: "Ngày giờ không hợp lệ.", fieldErrors: { dueAt: ["Ngày giờ hạn nộp không đúng định dạng."] } };
-  }
   const dueAtFormatted = `${parsed.data.dueAt}:00+07:00`;
-  // Validate it parses correctly
-  if (isNaN(Date.parse(dueAtFormatted))) {
-    return { ...blank, error: "Ngày giờ không hợp lệ.", fieldErrors: { dueAt: ["Ngày giờ hạn nộp không đúng định dạng."] } };
-  }
-
-  const now = new Date();
-  const createdAt = now.toISOString().replace("Z", "+07:00").replace(/\.\d{3}/, "");
-  // Generate a unique ID
-  const id = `dl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  const createdAt = new Date().toISOString();
+  const id = `dl-${randomUUID()}`;
 
   try {
     await updateRepository((db) => {
+      if (!db.subjects.some((subject) => subject.id === parsed.data.subjectId)) {
+        throw new Error("Môn học không tồn tại.");
+      }
       if (db.deadlines.some((d) => d.id === id)) {
         throw new Error("Trùng ID deadline.");
       }
@@ -88,7 +90,9 @@ export async function addDeadline(_prev: DeadlineActionState, form: FormData): P
 
 // ── Delete Deadline ──────────────────────────────────────────────────
 export async function deleteDeadline(_prev: DeadlineActionState, form: FormData): Promise<DeadlineActionState> {
-  await requirePermission("deadline:delete", "/admin");
+  const error = await authorize("deadline:delete");
+  if (error) return { ...blank, error };
+  if (!(form instanceof FormData)) return { ...blank, error: "Dữ liệu biểu mẫu không hợp lệ." };
 
   const parsed = deleteSchema.safeParse({ deadlineId: form.get("deadlineId") });
   if (!parsed.success) {
